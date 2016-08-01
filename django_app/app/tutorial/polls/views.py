@@ -1,26 +1,28 @@
 from django.shortcuts import get_object_or_404, render
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
+from django.views import generic
 
-from .models import Question
-
-
-# Create your views here.
-def index(request):
-    latest_questions = Question.objects.order_by('-pub_date')[:5]
-    output = ', '.join([q.question_text for q in latest_questions])
-    return render(request, 'index.html',
-                  {'latest_questions': latest_questions})
+from .models import Question, Choice
 
 
-def detail(request, question_id):
-    question = get_object_or_404(Question, pk=question_id)
-    return render(request, 'detail.html', {'question': question})
+class IndexView(generic.ListView):
+    template_name = 'index.html'
+    context_object_name = 'latest_questions'
+
+    def get_queryset(self):
+        """Get the latest 5 published questions."""
+        return Question.objects.order_by('-pub_date')[:5]
 
 
-def results(request, question_id):
-    question = get_object_or_404(Question, pk=question_id)
-    return render(request, 'result.html', {'question': question})
+class DetailView(generic.DetailView):
+    model = Question
+    template_name = 'detail.html'
+
+
+class ResultsView(generic.DetailView):
+    model = Question
+    template_name = 'result.html'
 
 
 def vote(request, question_id):
